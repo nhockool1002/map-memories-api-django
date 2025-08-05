@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  mmdj_db:
+    image: postgres:15-alpine
+    container_name: mmdj_postgres
+    environment:
+      POSTGRES_DB: map_memories_db
+      POSTGRES_USER: mmdj_user
+      POSTGRES_PASSWORD: mmdj_password123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - mmdj_postgres_data:/var/lib/postgresql/data
+      - ./db_init:/docker-entrypoint-initdb.d
+    networks:
+      - mmdj_network
+    command: >
+      postgres -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmdj_user -d map_memories_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mmdj_redis:
+    image: redis:7-alpine
+    container_name: mmdj_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - mmdj_redis_data:/data
+    networks:
+      - mmdj_network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mmdj_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mmdj_django_api
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://mmdj_user:mmdj_password123@mmdj_db:5432/map_memories_db
+      - REDIS_URL=redis://mmdj_redis:6379/0
+      - SECRET_KEY=mmdj-super-secret-key-change-in-production-2024
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,mmdj_api
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:8090
+    ports:
+      - "8090:8000"
+    volumes:
+      - .:/app
+      - mmdj_media:/app/media
+      - mmdj_static:/app/static
+    depends_on:
+      mmdj_db:
+        condition: service_healthy
+      mmdj_redis:
+        condition: service_healthy
+    networks:
+      - mmdj_network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py seed_data &&
+             python manage.py runserver 0.0.0.0:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mmdj_nginx:
+    image: nginx:alpine
+    container_name: mmdj_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - mmdj_static:/app/static
+      - mmdj_media:/app/media
+    depends_on:
+      - mmdj_api
+    networks:
+      - mmdj_network
+
+volumes:
+  mmdj_postgres_data:
+  mmdj_redis_data:
+  mmdj_media:
+  mmdj_static:
+
+networks:
+  mmdj_network:
+    driver: bridge
