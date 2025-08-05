@@ -82,10 +82,7 @@ class Memory(BaseModel):
         """Get count of likes for this memory"""
         return self.likes.count()
     
-    @property
-    def media_count(self):
-        """Get count of media attachments for this memory"""
-        return self.media_files.count()
+
     
     def is_liked_by(self, user):
         """Check if memory is liked by specific user"""

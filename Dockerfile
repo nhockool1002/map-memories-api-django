@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including GDAL and PostGIS
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         postgresql-client \
@@ -17,7 +17,22 @@ RUN apt-get update \
         curl \
         gettext \
         git \
+        # GDAL and PostGIS dependencies
+        gdal-bin \
+        libgdal-dev \
+        postgis \
+        postgresql-15-postgis-3 \
+        # Additional dependencies for GDAL
+        libgeos-dev \
+        libproj-dev \
+        proj-bin \
+        proj-data \
     && rm -rf /var/lib/apt/lists/*
+
+# Set GDAL environment variables
+ENV GDAL_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/libgdal.so
+ENV GEOS_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/libgeos_c.so
+ENV PROJ_LIB=/usr/share/proj
 
 # Install Python dependencies
 COPY requirements.txt /app/

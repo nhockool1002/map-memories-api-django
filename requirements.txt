@@ -22,3 +22,4 @@ django-soft-delete==1.0.10
 django-timezone-field==6.1.0
 pytz==2023.3
 dj-database-url==2.1.0
+GDAL==3.6.4

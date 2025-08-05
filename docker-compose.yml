@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mmdj_db:
-    image: postgres:15-alpine
+    image: postgis/postgis:15-3.3
     container_name: mmdj_postgres
     environment:
       POSTGRES_DB: map_memories_db

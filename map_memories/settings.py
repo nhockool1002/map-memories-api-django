@@ -6,6 +6,14 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# GDAL Environment Variables for GeoDjango
+if not os.environ.get('GDAL_LIBRARY_PATH'):
+    os.environ['GDAL_LIBRARY_PATH'] = '/usr/lib/x86_64-linux-gnu/libgdal.so'
+if not os.environ.get('GEOS_LIBRARY_PATH'):
+    os.environ['GEOS_LIBRARY_PATH'] = '/usr/lib/x86_64-linux-gnu/libgeos_c.so'
+if not os.environ.get('PROJ_LIB'):
+    os.environ['PROJ_LIB'] = '/usr/share/proj'
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='mmdj-super-secret-key-change-in-production-2024')
 
@@ -38,7 +46,6 @@ LOCAL_APPS = [
     'accounts',
     'locations',
     'memories',
-    'media',
     'shop',
     'common',
 ]

@@ -33,10 +33,9 @@ urlpatterns = [
     path('api/v1/auth/', include('accounts.urls')),
     path('api/v1/locations/', include('locations.urls')),
     path('api/v1/memories/', include('memories.urls')),
-    path('api/v1/media/', include('media.urls')),
     path('api/v1/shop/', include('shop.urls')),
     path('api/v1/currency/', include('shop.currency_urls')),
-    path('api/v1/admin/', include('shop.admin_urls')),
+    path('api/v1/shop-admin/', include('shop.admin_urls')),
 ]
 
 # Serve media files in development
